@@ -4,25 +4,30 @@ from json import JSONDecodeError
 import requests
 
 import ripio
-from ripio.exceptions.auth import UnathorizedClient
-from ripio.exceptions.response import NotSuccessfulResponse
+from ripio.exceptions.auth import UnathorizedClientException
+from ripio.exceptions.response import NotSuccessfulResponseException
 
 
 class RipioClient(ABC):
     auth_mandatory = False
+    _api_exception_manager = None
 
     def __init__(self, api_key=None):
         self.session = requests.Session()
+        self.session.verify = ripio.VERIFY_SSL
         self.api_key = ripio.api_key if api_key is None else api_key
 
     """
     Client Manager Specific Methods
     """
+
     def get_params_from_locals(self, local_vars, exclude_vars=[]):
         return {
             key: local_vars[key]
             for key in local_vars
-            if key != "self" and local_vars[key] is not None and key not in exclude_vars
+            if key != "self"
+            and local_vars[key] is not None
+            and key not in exclude_vars
         }
 
     def process_arguments(self, **kwargs):
@@ -36,16 +41,20 @@ class RipioClient(ABC):
         if "success_status_code" in client_kwargs:
             if response.status_code == client_kwargs["success_status_code"]:
                 return response_body
+            elif self._api_exception_manager is not None:
+                self._api_exception_manager.dispatch(
+                    response.status_code, response_body
+                )
             else:
                 message = f"{response.status_code} : {response_body}"
-                raise NotSuccessfulResponse(message)
+                raise NotSuccessfulResponseException(message)
         else:
             return response_body
 
     def get_response_body(self, response):
         try:
             json_body = response.json()
-            if "data" in json_body:
+            if "data" in json_body and json_body.get("data") is not None:
                 return json_body["data"]
             else:
                 return json_body
@@ -62,7 +71,7 @@ class RipioClient(ABC):
     def check_api_key(func):
         def checker(self, *args, **kwargs):
             if self.api_key is None:
-                raise UnathorizedClient("No credentials were passed")
+                raise UnathorizedClientException("No credentials were passed")
             self.authenticate_session()
             return func(self, *args, **kwargs)
 
@@ -71,7 +80,7 @@ class RipioClient(ABC):
     def check_api_auth(self):
         if self.api_key is None and self.auth_mandatory:
             message = "Auth credenatials are mandatory for this client"
-            raise UnathorizedClient(message)
+            raise UnathorizedClientException(message)
         elif self.auth_mandatory:
             self.authenticate_session()
 

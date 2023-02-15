@@ -7,3 +7,4 @@ api_key = None
 
 # RIPIO_TRADE_BASE_URL = "https://api.ripiotrade.co/v4/"
 RIPIO_TRADE_BASE_URL = "https://api.prebitcointrade.com/v4/"
+VERIFY_SSL = False
