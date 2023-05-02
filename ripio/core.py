@@ -3,7 +3,6 @@ from json import JSONDecodeError
 
 import requests
 
-import ripio
 from ripio.exceptions.auth import UnathorizedClientException
 from ripio.exceptions.response import NotSuccessfulResponseException
 
@@ -12,14 +11,28 @@ class RipioClient(ABC):
     auth_mandatory = False
     _api_exception_manager = None
 
-    def __init__(self, api_key=None):
-        self.session = requests.Session()
-        self.session.verify = ripio.VERIFY_SSL
-        self.api_key = ripio.api_key if api_key is None else api_key
+    def __init_subclass__(cls, **kwargs):
+        if cls.auth_mandatory:
+            super().__init_subclass__(**kwargs)
+        else:
+            if "check_api_auth" in cls.__dict__:
+                delattr(cls, "check_api_auth")
+            super().__init_subclass__(**kwargs)
 
-    """
-    Client Manager Specific Methods
-    """
+    def __init__(
+        self,
+        wallet_private_key,
+        api_key=None,
+        client_id=None,
+        client_secret=None,
+    ):
+        self.session = requests.Session()
+        self.__wallet_private_key = wallet_private_key
+        self.api_key = api_key
+        self.client_id = client_id
+        self.client_secret = client_secret
+
+    # Client Manager Specific Methods
 
     def get_params_from_locals(self, local_vars, exclude_vars=[]):
         return {
@@ -77,13 +90,6 @@ class RipioClient(ABC):
 
         return checker
 
-    def check_api_auth(self):
-        if self.api_key is None and self.auth_mandatory:
-            message = "Auth credenatials are mandatory for this client"
-            raise UnathorizedClientException(message)
-        elif self.auth_mandatory:
-            self.authenticate_session()
-
     # Destructor method to free up resources
     def __del__(self):
         self.session.close()
@@ -94,26 +100,41 @@ class RipioClient(ABC):
     def authenticate_session(self):
         pass
 
-    """
-    HTTP supported methods handlers
-    """
+    # Abstract method to request for a check if the auth is mandatory
+    @abstractmethod
+    def check_api_auth(self):
+        pass
 
+    # HTTP supported methods handlers
     def get(self, *args, **kwargs):
         request_kwargs, client_kwargs = self.process_arguments(**kwargs)
-        response = self.session.get(*args, **request_kwargs)
+        req = requests.Request("GET", *args, **request_kwargs)
+        response = self.prepare_request(req)
         return self.process_response(response, client_kwargs)
 
     def put(self, *args, **kwargs):
         request_kwargs, client_kwargs = self.process_arguments(**kwargs)
-        response = self.session.get(*args, **request_kwargs)
+        req = requests.Request("PUT", *args, **request_kwargs)
+        response = self.prepare_request(req)
         return self.process_response(response, client_kwargs)
 
     def post(self, *args, **kwargs):
         request_kwargs, client_kwargs = self.process_arguments(**kwargs)
-        response = self.session.post(*args, **request_kwargs)
+        req = requests.Request("POST", *args, **request_kwargs)
+        response = self.prepare_request(req)
         return self.process_response(response, client_kwargs)
 
     def delete(self, *args, **kwargs):
         request_kwargs, client_kwargs = self.process_arguments(**kwargs)
-        response = self.session.delete(*args, **request_kwargs)
+        req = requests.Request("DELETE", *args, **request_kwargs)
+        response = self.prepare_request(req)
         return self.process_response(response, client_kwargs)
+
+    def prepare_request(self, req):
+        req_prepared = self.session.prepare_request(req)
+
+        # prepare request to send the request signed
+
+        response = self.session.send(req_prepared)
+
+        return response

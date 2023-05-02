@@ -1,2 +1,5 @@
-class InvalidParamatersException(Exception):
+from ripio.exceptions import RipioException
+
+
+class InvalidParamatersException(RipioException):
     pass

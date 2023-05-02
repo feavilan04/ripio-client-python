@@ -1,10 +1,10 @@
-# User variables
+from ripio.b2b.client import Client as B2BClient
+from ripio.trade.client import Client as TradeClient
 
-# api key to be used globally for the whole system
-api_key = None
 
-# Constants
-
-# RIPIO_TRADE_BASE_URL = "https://api.ripiotrade.co/v4/"
-RIPIO_TRADE_BASE_URL = "https://api.prebitcointrade.com/v4/"
-VERIFY_SSL = False
+class Client(object):
+    def __init__(
+        self, private_key, api_key=None, client_id=None, client_secret=None
+    ):
+        self.trade = TradeClient(private_key, api_key)
+        self.b2b = B2BClient(private_key, client_id, client_secret)

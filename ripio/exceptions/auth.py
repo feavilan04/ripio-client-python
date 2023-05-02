@@ -1,6 +1,9 @@
-class UnathorizedClientException(Exception):
+from ripio.exceptions import RipioException
+
+
+class UnathorizedClientException(RipioException):
     pass
 
 
-class ForbiddenAccessException(Exception):
+class ForbiddenAccessException(RipioException):
     pass

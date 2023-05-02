@@ -1,30 +1,37 @@
-class NotSuccessfulResponseException(Exception):
+from ripio.exceptions import RipioException
+
+
+class NotSuccessfulResponseException(RipioException):
     pass
 
 
-class NotFoundException(Exception):
+class NotFoundException(RipioException):
     pass
 
 
-class ExceededRequestLimitException(Exception):
+class ExceededRequestLimitException(RipioException):
     pass
 
 
-class InternalServerErrorException(Exception):
+class InternalServerErrorException(RipioException):
     pass
 
 
-class UnableToRetrieveDataException(Exception):
+class UnableToRetrieveDataException(RipioException):
     pass
 
 
-class ExternalCommunicationErrorException(Exception):
+class ExternalCommunicationErrorException(RipioException):
     pass
 
 
-class InternalCommunicationErrorException(Exception):
+class InternalCommunicationErrorException(RipioException):
     pass
 
 
-class ServiveUnavailableException(Exception):
+class ServiveUnavailableException(RipioException):
+    pass
+
+
+class RequestTimeoutException(RipioException):
     pass

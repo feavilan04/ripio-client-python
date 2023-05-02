@@ -3,14 +3,14 @@ import datetime as dt
 import ripio
 from ripio.core import RipioClient
 from ripio.exceptions.request import InvalidParamatersException
-from ripio.trade import TradeErrorDispatcher
+from ripio.trade.exceptions import TradeErrorDispatcher
 
 
 class Client(RipioClient):
-    def __init__(self, api_key=None):
+    def __init__(self, wallet_private_key, api_key=None):
         self.base_url = ripio.RIPIO_TRADE_BASE_URL
         self._api_exception_manager = TradeErrorDispatcher
-        super().__init__(api_key)
+        super().__init__(wallet_private_key, api_key)
 
     def authenticate_session(self):
         self.session.headers["Authorization"] = self.api_key
@@ -430,7 +430,7 @@ class Client(RipioClient):
     # Transaction Endpoints
 
     @RipioClient.check_api_key
-    def synchronize_transaction(self, hash, currency_code, block_id):
+    def synchronize_transaction(self, hash, currency_code, block_id=None):
         request_body = {
             "hash": hash,
             "currency_code": currency_code,
