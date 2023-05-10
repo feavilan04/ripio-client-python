@@ -1,44 +1,17 @@
-import time
-
 import ripio
-from ripio.trade.websocket import RipioTradeWebsocket
 
 ripio.api_key = (
     "U2FsdGVkX1+XtVrDRsxsAkMgY9zUpuLHDDVFegsTfAk8gzfLG99IYram7yVkcfIU"
 )
 
-
-def message_callback(*args, **kwargs):
-    print("Message Arguments", args)
-    print("Message Kwargs", kwargs)
-    # ws_connection.close()
-
-
-def error_callback(*args, **kwargs):
-    print("Error Arguments", args)
-    print("Error Kwargs", kwargs)
-
-
-def close_callback(*args, **kwargs):
-    print("Close Arguments", args)
-    print("Close Kwargs", kwargs)
-
-
-def open_callback(*args, **kwargs):
-    print("Open Arguments", args)
-    print("Open Kwargs", kwargs)
-    ws_connection.send_message({"sample": "data"})
-
-
-ws_connection = RipioTradeWebsocket(
-    on_open=open_callback,
-    on_message=message_callback,
-    on_close=close_callback,
-    on_error=error_callback,
+client = ripio.Client(
+    "dbe2a71f9016e776333514a40c3adca1f53affe2c12e79e406107a457576635b",
+    "lachain",
+    client_id="OgzJWopVPRb40CREtbdyIh2phA7E9IQsyMiXqS3F",
+    client_secret="wcPqAMgP1c063FY6qrwp1ZWGgIec9NQQCuuIovzK5GpxXfT6xQUE23krdlSXrZ1JMTpI1me0s2hJVQfbsbHrObsOvAQDc0BK2DaZ2MEG2kj6djVXbLCsatdgOD39Vn20",
 )
 
-while True:
-    print("running")
-    time.sleep(3)
-    ws_connection.send_message({"method": "PING", "topics": "hello"})
-    print("this will never be executed")
+response = client.trade.get_currencies("USD")
+print(response)
+
+client.b2b.get_reusable_quotes()

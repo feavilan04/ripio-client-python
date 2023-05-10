@@ -1,19 +1,18 @@
 import datetime as dt
 
-import ripio
 from ripio.core import RipioClient
 from ripio.exceptions.request import InvalidParamatersException
 from ripio.trade.exceptions import TradeErrorDispatcher
 
 
 class Client(RipioClient):
-    def __init__(self, wallet_private_key, api_key=None):
-        self.base_url = ripio.RIPIO_TRADE_BASE_URL
+    def __init__(self, wallet_private_key, network, api_key=None):
+        self.path = "trade/"
         self._api_exception_manager = TradeErrorDispatcher
-        super().__init__(wallet_private_key, api_key)
+        super().__init__(wallet_private_key, network, api_key=api_key)
 
     def authenticate_session(self):
-        self.session.headers["Authorization"] = self.api_key
+        self.session.headers["X-RIPIO-API-KEY"] = self.api_key
 
     # Orders Management
 
@@ -33,7 +32,7 @@ class Client(RipioClient):
         function_params = locals()
         params = self.get_params_from_locals(function_params)
         response = self.get(
-            f"{self.base_url}orders", params=params, success_status_code=200
+            f"{self.path}orders", params=params, success_status_code=200
         )
         return response
 
@@ -64,7 +63,7 @@ class Client(RipioClient):
         }
         request_body = self.remove_null_from_request_body(request_dict)
         response = self.post(
-            f"{self.base_url}orders",
+            f"{self.path}orders",
             json=request_body,
             success_status_code=200,
         )
@@ -74,7 +73,7 @@ class Client(RipioClient):
     def cancel_order(self, id):
         request_body = {"id": id}
         response = self.delete(
-            f"{self.base_url}orders",
+            f"{self.path}orders",
             json=request_body,
             success_status_code=200,
         )
@@ -85,7 +84,7 @@ class Client(RipioClient):
         function_params = locals()
         params = self.get_params_from_locals(function_params)
         response = self.get(
-            f"{self.base_url}orders/open",
+            f"{self.path}orders/open",
             params=params,
             success_status_code=200,
         )
@@ -94,7 +93,7 @@ class Client(RipioClient):
     @RipioClient.check_api_key
     def get_order_by_id(self, id):
         response = self.get(
-            f"{self.base_url}orders/{id}",
+            f"{self.path}orders/{id}",
             success_status_code=200,
         )
         return response
@@ -102,7 +101,7 @@ class Client(RipioClient):
     @RipioClient.check_api_key
     def get_order_by_external_id(self, external_id):
         response = self.get(
-            f"{self.base_url}orders/by-external-id/{external_id}",
+            f"{self.path}orders/by-external-id/{external_id}",
             success_status_code=200,
         )
         return response
@@ -111,7 +110,7 @@ class Client(RipioClient):
     def cancel_order_by_external_id(self, external_id):
         request_body = {"external_id": external_id}
         response = self.delete(
-            f"{self.base_url}orders/by-external-id",
+            f"{self.path}orders/by-external-id",
             json=request_body,
             success_status_code=200,
         )
@@ -120,7 +119,7 @@ class Client(RipioClient):
     @RipioClient.check_api_key
     def cancel_all_orders(self):
         response = self.delete(
-            f"{self.base_url}orders/all",
+            f"{self.path}orders/all",
             success_status_code=200,
         )
         return response
@@ -128,13 +127,13 @@ class Client(RipioClient):
     # Public Endpoints
     def get_tickers(self):
         response = self.get(
-            f"{self.base_url}public/tickers", success_status_code=200
+            f"{self.path}public/tickers", success_status_code=200
         )
         return response
 
     def get_ticker_by_pair(self, pair):
         response = self.get(
-            f"{self.base_url}public/tickers/{pair}", success_status_code=200
+            f"{self.path}public/tickers/{pair}", success_status_code=200
         )
         return response
 
@@ -142,7 +141,7 @@ class Client(RipioClient):
         function_params = locals()
         params = self.get_params_from_locals(function_params)
         response = self.get(
-            f"{self.base_url}public/orders/level-3",
+            f"{self.path}public/orders/level-3",
             params=params,
             success_status_code=200,
         )
@@ -152,7 +151,7 @@ class Client(RipioClient):
         function_params = locals()
         params = self.get_params_from_locals(function_params)
         response = self.get(
-            f"{self.base_url}public/orders/level-2",
+            f"{self.path}public/orders/level-2",
             params=params,
             success_status_code=200,
         )
@@ -169,7 +168,7 @@ class Client(RipioClient):
         function_params = locals()
         params = self.get_params_from_locals(function_params)
         response = self.get(
-            f"{self.base_url}public/trades",
+            f"{self.path}public/trades",
             params=params,
             success_status_code=200,
         )
@@ -179,7 +178,7 @@ class Client(RipioClient):
         function_params = locals()
         params = self.get_params_from_locals(function_params)
         response = self.get(
-            f"{self.base_url}public/currencies",
+            f"{self.path}public/currencies",
             params=params,
             success_status_code=200,
         )
@@ -189,7 +188,7 @@ class Client(RipioClient):
         function_params = locals()
         params = self.get_params_from_locals(function_params)
         response = self.get(
-            f"{self.base_url}public/pairs",
+            f"{self.path}public/pairs",
             params=params,
             success_status_code=200,
         )
@@ -197,7 +196,7 @@ class Client(RipioClient):
 
     def get_server_time(self):
         response = self.get(
-            f"{self.base_url}public/server-time", success_status_code=200
+            f"{self.path}public/server-time", success_status_code=200
         )
         return response
 
@@ -208,7 +207,7 @@ class Client(RipioClient):
         function_params = locals()
         params = self.get_params_from_locals(function_params)
         response = self.get(
-            f"{self.base_url}book/summaries",
+            f"{self.path}book/summaries",
             params=params,
             success_status_code=200,
         )
@@ -219,7 +218,7 @@ class Client(RipioClient):
         function_params = locals()
         params = self.get_params_from_locals(function_params, ["pair"])
         response = self.get(
-            f"{self.base_url}book/estimate-price/{pair }",
+            f"{self.path}book/estimate-price/{pair }",
             params=params,
             success_status_code=200,
         )
@@ -230,7 +229,7 @@ class Client(RipioClient):
         function_params = locals()
         params = self.get_params_from_locals(function_params)
         response = self.get(
-            f"{self.base_url}book/orders/level-3",
+            f"{self.path}book/orders/level-3",
             params=params,
             success_status_code=200,
         )
@@ -241,7 +240,7 @@ class Client(RipioClient):
         function_params = locals()
         params = self.get_params_from_locals(function_params)
         response = self.get(
-            f"{self.base_url}book/orders/level-2",
+            f"{self.path}book/orders/level-2",
             params=params,
             success_status_code=200,
         )
@@ -252,7 +251,7 @@ class Client(RipioClient):
     @RipioClient.check_api_key
     def get_user_balances(self):
         response = self.get(
-            f"{self.base_url}user/balances", success_status_code=200
+            f"{self.path}user/balances", success_status_code=200
         )
         return response
 
@@ -264,7 +263,7 @@ class Client(RipioClient):
             )
         formatted_date = date.isoformat()
         response = self.get(
-            f"{self.base_url}user/balances/{formatted_date}",
+            f"{self.path}user/balances/{formatted_date}",
             success_status_code=200,
         )
         return response
@@ -272,7 +271,7 @@ class Client(RipioClient):
     @RipioClient.check_api_key
     def get_user_fee_and_limits(self):
         response = self.get(
-            f"{self.base_url}user/fees-and-limits", success_status_code=200
+            f"{self.path}user/fees-and-limits", success_status_code=200
         )
         return response
 
@@ -283,7 +282,7 @@ class Client(RipioClient):
         function_params = locals()
         params = self.get_params_from_locals(function_params)
         response = self.get(
-            f"{self.base_url}user/statement",
+            f"{self.path}user/statement",
             params=params,
             success_status_code=200,
         )
@@ -303,7 +302,7 @@ class Client(RipioClient):
             function_params, ["currency_code"]
         )
         response = self.get(
-            f"{self.base_url}user/statement/{currency_code}",
+            f"{self.path}user/statement/{currency_code}",
             params=params,
             success_status_code=200,
         )
@@ -316,7 +315,7 @@ class Client(RipioClient):
         function_params = locals()
         params = self.get_params_from_locals(function_params)
         response = self.get(
-            f"{self.base_url}user/trades",
+            f"{self.path}user/trades",
             params=params,
             success_status_code=200,
         )
@@ -338,7 +337,7 @@ class Client(RipioClient):
         function_params = locals()
         params = self.get_params_from_locals(function_params)
         response = self.get(
-            f"{self.base_url}deposits", params=params, success_status_code=200
+            f"{self.path}deposits", params=params, success_status_code=200
         )
         return response
 
@@ -358,7 +357,7 @@ class Client(RipioClient):
         function_params = locals()
         params = self.get_params_from_locals(function_params)
         response = self.get(
-            f"{self.base_url}withdrawals",
+            f"{self.path}withdrawals",
             params=params,
             success_status_code=200,
         )
@@ -370,7 +369,7 @@ class Client(RipioClient):
         fee_type,
         amount,
         destination,
-        currency,
+        currency_code,
         network,
         tag=None,
         memo=None,
@@ -379,13 +378,13 @@ class Client(RipioClient):
             "fee_type": fee_type,
             "amount": amount,
             "destination": destination,
-            "currency": currency,
+            "currency_code": currency_code,
             "network": network,
             "tag": tag,
             "memo": memo,
         }
         response = self.post(
-            f"{self.base_url}withdrawals",
+            f"{self.path}withdrawals",
             success_status_code=200,
             json=request_body,
         )
@@ -398,7 +397,7 @@ class Client(RipioClient):
             function_params, ["currency_code"]
         )
         response = self.get(
-            f"{self.base_url}withdrawals/estimate-fee/{currency_code}",
+            f"{self.path}withdrawals/estimate-fee/{currency_code}",
             success_status_code=200,
             params=params,
         )
@@ -411,7 +410,7 @@ class Client(RipioClient):
         function_params = locals()
         params = self.get_params_from_locals(function_params)
         response = self.get(
-            f"{self.base_url}wallets/is-internal",
+            f"{self.path}wallets/is-internal",
             success_status_code=200,
             params=params,
         )
@@ -422,7 +421,7 @@ class Client(RipioClient):
     @RipioClient.check_api_key
     def get_wallets(self):
         response = self.get(
-            f"{self.base_url}wallets",
+            f"{self.path}wallets",
             success_status_code=200,
         )
         return response
@@ -437,7 +436,7 @@ class Client(RipioClient):
             "block_id": block_id,
         }
         response = self.post(
-            f"{self.base_url}transactions/sync",
+            f"{self.path}transactions/sync",
             success_status_code=200,
             json=request_body,
         )
